@@ -505,7 +505,8 @@ ScreenCaptureSourceInfo _$ScreenCaptureSourceInfoFromJson(
           ? null
           : Rectangle.fromJson(json['position'] as Map<String, dynamic>),
       minimizeWindow: json['minimizeWindow'] as bool?,
-      sourceDisplayId: json['sourceDisplayId'] as int?,
+      sourceDisplayId: int.tryParse(json['sourceDisplayId'].toString()) ??
+          0, // json['sourceDisplayId'] as int?,
     );
 
 Map<String, dynamic> _$ScreenCaptureSourceInfoToJson(
