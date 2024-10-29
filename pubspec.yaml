@@ -17,7 +17,10 @@ dependencies:
   ffi: '>=1.1.2'
   async: '>=2.8.2'
   meta: ^1.7.0
-  iris_method_channel: '>=2.2.0'
+  iris_method_channel:
+    path: ../flutter-sdk-methodchannel
+  agora_video_canvas:
+    path: ./packages/agora_video_canvas
   js: '>=0.6.3'
 dev_dependencies:
   flutter_test:
@@ -41,3 +44,6 @@ flutter:
       web:
         pluginClass: AgoraRtcEngineWeb
         fileName: agora_rtc_engine_web.dart
+      ohos:
+        package: io.agora.agora_rtc_ng
+        pluginClass: AgoraRtcEnginePlugin
