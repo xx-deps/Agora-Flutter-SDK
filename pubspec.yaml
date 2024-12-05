@@ -18,7 +18,7 @@ dependencies:
   async: '>=2.8.2'
   meta: ^1.7.0
   iris_method_channel:
-    path: ../flutter-sdk-methodchannel
+    path: ../rtc-method-channel
   agora_video_canvas:
     path: ./packages/agora_video_canvas
   js: '>=0.6.3'
