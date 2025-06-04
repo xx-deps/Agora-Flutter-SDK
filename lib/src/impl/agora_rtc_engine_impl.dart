@@ -1045,6 +1045,17 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     return p;
   }
 
+  Future<int> registerTexture() async {
+    final p = await engineMethodChannel.invokeMethod<int>(
+        'registerTexture');
+    return p ?? 0;
+  }
+
+  Future<void> unregisterTexture(int textureId) async {
+    await engineMethodChannel.invokeMethod<void>(
+        'unregisterTexture', textureId);
+  }
+
   /////////// debug ////////
 
   /// [type] see [VideoSourceType], only [VideoSourceType.videoSourceCamera], [VideoSourceType.videoSourceRemote] supported

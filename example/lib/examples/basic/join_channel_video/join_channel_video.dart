@@ -33,6 +33,8 @@ class _State extends State<JoinChannelVideo> {
       ChannelProfileType.channelProfileLiveBroadcasting;
   late final RtcEngineEventHandler _rtcEngineEventHandler;
 
+  int textureId = -1;
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +57,11 @@ class _State extends State<JoinChannelVideo> {
 
   Future<void> _initEngine() async {
     _engine = createAgoraRtcEngine();
+    textureId = await _engine.registerTexture();
+    setState(() {
+      textureId = textureId;
+    });
+
     await _engine.initialize(RtcEngineContext(
       appId: config.appId,
     ));
@@ -154,8 +161,20 @@ class _State extends State<JoinChannelVideo> {
     });
   }
 
+  Widget getTextureBody(BuildContext context) {
+    return Container(
+      width: 500,
+      height: 500,
+      child: Texture(
+        textureId: textureId,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    Widget textureBody = textureId >= 0 ? getTextureBody(context) : const Text('loading...');
+
     return ExampleActionsWidget(
       displayContentBuilder: (context, isLayoutHorizontal) {
         return Stack(
@@ -163,47 +182,8 @@ class _State extends State<JoinChannelVideo> {
             StatsMonitoringWidget(
               rtcEngine: _engine,
               uid: 0,
-              child: AgoraVideoView(
-                controller: VideoViewController(
-                  rtcEngine: _engine,
-                  canvas: const VideoCanvas(uid: 0),
-                  useFlutterTexture: _isUseFlutterTexture,
-                  useAndroidSurfaceView: _isUseAndroidSurfaceView,
-                ),
-                onAgoraVideoViewCreated: (viewId) {
-                  _engine.startPreview();
-                },
-              ),
+              child: textureBody,
             ),
-            Align(
-              alignment: Alignment.topLeft,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.of(remoteUid.map(
-                    (e) => SizedBox(
-                      width: 200,
-                      height: 200,
-                      child: StatsMonitoringWidget(
-                        rtcEngine: _engine,
-                        uid: e,
-                        channelId: _controller.text,
-                        child: AgoraVideoView(
-                          controller: VideoViewController.remote(
-                            rtcEngine: _engine,
-                            canvas: VideoCanvas(uid: e),
-                            connection:
-                                RtcConnection(channelId: _controller.text),
-                            useFlutterTexture: _isUseFlutterTexture,
-                            useAndroidSurfaceView: _isUseAndroidSurfaceView,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )),
-                ),
-              ),
-            )
           ],
         );
       },

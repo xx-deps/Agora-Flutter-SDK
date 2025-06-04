@@ -6,6 +6,7 @@ import {
   MethodChannel,
   MethodResult,
 } from '@ohos/flutter_ohos';
+import { TextureRegistry } from '@ohos/flutter_ohos/src/main/ets/view/TextureRegistry';
 import { common } from '@kit.AbilityKit';
 import { JSON } from '@kit.ArkTS';
 import Log from '@ohos/flutter_ohos/src/main/ets/util/Log';
@@ -22,6 +23,10 @@ import {
   ChannelMediaOptions,
   RtcEngine
 } from '@shengwang/rtc-full';
+
+import {
+  IrisRenderManager
+} from '@shengwang/rtc-wrapper';
 
 class DartRtcEngineLogConfig {
   public filePath?: string = undefined;
@@ -41,6 +46,9 @@ const METHOD_CHANNEL: string = "agora_rtc_ng";
 export default class AgoraRtcEnginePlugin implements FlutterPlugin, MethodCallHandler {
   private channel: MethodChannel | null = null;
   private _engine: RtcEngineEx | null = null;
+  private textureRegistry: TextureRegistry | null = null;
+  private textureId: number = -1;
+  private surfaceId: number = -1;
 
   constructor() {
     Log.i(TAG, 'constructor')
@@ -54,6 +62,7 @@ export default class AgoraRtcEnginePlugin implements FlutterPlugin, MethodCallHa
     Log.i(TAG, 'attached');
     this.channel = new MethodChannel(binding.getBinaryMessenger(), METHOD_CHANNEL);
     this.channel.setMethodCallHandler(this);
+    this.textureRegistry = binding.getTextureRegistry();
   }
 
   onDetachedFromEngine(binding: FlutterPluginBinding): void {
@@ -105,6 +114,8 @@ export default class AgoraRtcEnginePlugin implements FlutterPlugin, MethodCallHa
       throw Error('create rtc engine failed');
     }
 
+    this._engine.enableVideo();
+
     Log.w(TAG, 'native handle: ' + this._engine!.getNativeHandle().toString());
 
     return this._engine!.getNativeHandle().toString();
@@ -134,6 +145,12 @@ export default class AgoraRtcEnginePlugin implements FlutterPlugin, MethodCallHa
         result.success(this.onOhosInit(call));
       } else if (call.method == "ohosDestroy") {
         result.success(this.onOhosDestroy(call));
+      } else if (call.method == "registerTexture") {
+        this.textureId = this.textureRegistry!.getTextureId();
+        this.surfaceId = this.textureRegistry!.registerTexture(this.textureId)!.getSurfaceId();
+        result.success(this.textureId);
+      } else if (call.method == "unregisterTexture") {
+        this.textureRegistry!.unregisterTexture(call.argument("textureId"));
       } else {
         result.notImplemented();
       }

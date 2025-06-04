@@ -17,6 +17,16 @@ extension RtcEngineExt on RtcEngine {
     final impl = this as RtcEngineImpl;
     return impl.getAssetAbsolutePath(assetPath);
   }
+
+  Future<int> registerTexture() async {
+    final impl = this as RtcEngineImpl;
+    return impl.registerTexture();
+  }
+
+  Future<void> unregisterTexture(int textureId) async {
+    final impl = this as RtcEngineImpl;
+    return impl.unregisterTexture(textureId);
+  }
 }
 
 /// Error codes and error messages.
