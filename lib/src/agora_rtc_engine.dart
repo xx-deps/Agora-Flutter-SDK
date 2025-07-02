@@ -6348,6 +6348,10 @@ enum MediaDeviceStateType {
   /// 8: The device is unplugged.
   @JsonValue(8)
   mediaDeviceStateUnplugged,
+
+  /// 9: The default device has been changed.
+  @JsonValue(9)
+  mediaDeviceStateDefaultDeviceChangedReady,
 }
 
 /// @nodoc
