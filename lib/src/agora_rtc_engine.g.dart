@@ -1136,6 +1136,7 @@ const _$MediaDeviceStateTypeEnumMap = {
   MediaDeviceStateType.mediaDeviceStateDisabled: 2,
   MediaDeviceStateType.mediaDeviceStateNotPresent: 4,
   MediaDeviceStateType.mediaDeviceStateUnplugged: 8,
+  MediaDeviceStateType.mediaDeviceStateSetAsDefault: 9,
 };
 
 const _$VideoProfileTypeEnumMap = {
