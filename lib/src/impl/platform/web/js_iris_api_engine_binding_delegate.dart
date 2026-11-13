@@ -54,7 +54,7 @@ class IrisApiEngineBindingsDelegateJS
   ) async {
     final nApiEnginePtr = apiEnginePtr() as js.IrisApiEngine;
 
-    final jsBuffer = <JSObject>[];
+    final jsBuffer = <JSAny?>[];
     final jsLength = <JSNumber>[];
     if (methodCall.buffers != null) {
       for (final rb in methodCall.buffers!) {
@@ -74,7 +74,10 @@ class IrisApiEngineBindingsDelegateJS
       data: methodCall.params,
       data_size: methodCall.params.length,
       result: '',
-      buffer: jsBuffer.toJS,
+      // `EventParam.buffer` is declared as `JSArray<JSObject>` upstream, but
+      // a raw buffer param can also be a JS string (the platform view div id),
+      // so the array is created with `JSAny?` elements and cast here.
+      buffer: jsBuffer.toJS as JSArray<JSObject>,
       length: jsLength.toJS,
       buffer_count: jsBuffer.length,
     );
@@ -87,8 +90,9 @@ class IrisApiEngineBindingsDelegateJS
     // The JS side returns a `Promise`, convert it to a Dart `Future` so this
     // also works when compiled to Wasm, where `dart:js_util.promiseToFuture`
     // is not available and awaiting a native JS Promise does not work.
-    final jsPromise =
-        (js.callIrisApi(nApiEnginePtr, nParam) as JSPromise).toDart;
+    final jsPromise = (js.callIrisApi(nApiEnginePtr, nParam)
+            as JSPromise<js.CallIrisApiResult>)
+        .toDart;
 
     final js.CallIrisApiResult irisApiResult = await jsPromise;
 
@@ -116,12 +120,26 @@ class IrisApiEngineBindingsDelegateJS
 
 /// Converts the value of a raw buffer param to a JS value.
 ///
-/// On web the value is either the event handler function (see
-/// `IrisMethodChannelInternalWeb`) or the platform view handle, which is
-/// a `String`(the div id) on web.
-JSObject _rawBufferValueToJS(Object value) {
+/// On web the value is one of:
+/// * a `String`, the platform view div id (see
+///   `GlobalVideoViewControllerWeb.waitAndGetId`);
+/// * a JS object, i.e. the `IrisEventHandler` created by
+///   `IrisMethodChannelInternalWeb.initilize`, which is passed back when
+///   registering/unregistering event handlers;
+/// * a Dart event handler callback (`IrisCEventHandler`).
+JSAny? _rawBufferValueToJS(Object value) {
   if (value is String) return value.toJS;
   if (value is js.IrisCEventHandler) return value.toJS;
+
+  // Handles created by the JS bindings (e.g. `IrisEventHandler`) are already
+  // JS values, but `IrisHandle` stores them as `Object`. Avoid `is JSObject`:
+  // runtime checks between `Object` and JS interop types are not
+  // platform-consistent between dart2js and dart2wasm (see the
+  // `invalid_runtime_check_with_js_interop_types` lint). Use `isA` on the
+  // JS value instead.
+  final jsValue = value as JSAny?;
+  if (jsValue.isA<JSAny>()) return jsValue;
+
   throw ArgumentError.value(
       value.runtimeType, 'value', 'Unsupported raw buffer param type');
 }
