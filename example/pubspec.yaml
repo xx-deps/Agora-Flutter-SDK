@@ -6,7 +6,7 @@ description: Demonstrates how to use the agora_rtc_engine plugin.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -38,6 +38,10 @@ dependencies:
   #     url: https://github.com/AgoraIO-Extensions/RawDataPluginSample.git
   #     path: frameworks/flutter/video_raw_data
   #     ref: 51dde78706a015743a993368f25a06df7960378e
+
+dependency_overrides: 
+  iris_method_channel:
+    path: C:\Users\al_ta\github\iris_method_channel_flutter
 
 dev_dependencies:
   flutter_test:

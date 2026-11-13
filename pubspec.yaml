@@ -6,8 +6,8 @@ version: 6.2.6-sp.426169.b.1.wasm1
 homepage: https://www.agora.io
 repository: https://github.com/AgoraIO-Extensions/Agora-Flutter-SDK/tree/main
 environment:
-  sdk: '>=3.8.0 <4.0.0'
-  flutter: '>=3.32.0'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 dependencies:
   flutter:
     sdk: flutter
