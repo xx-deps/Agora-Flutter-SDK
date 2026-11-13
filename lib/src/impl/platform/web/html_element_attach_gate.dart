@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 
 // ignore_for_file: public_member_api_docs
 
@@ -8,21 +9,23 @@ typedef HtmlElementAttachObserverFactory = HtmlElementAttachObserver Function(
 );
 
 abstract class HtmlElementAttachObserver {
-  void observe(html.Element element);
+  void observe(web.Element element);
 
   void disconnect();
 }
 
 class ResizeHtmlElementAttachObserver implements HtmlElementAttachObserver {
   ResizeHtmlElementAttachObserver(void Function() onElementMayBeAttached)
-      : _observer = html.ResizeObserver((entries, observer) {
+      : _observer = web.ResizeObserver(
+            (JSArray<web.ResizeObserverEntry> entries,
+                web.ResizeObserver observer) {
           onElementMayBeAttached();
-        });
+        }.toJS);
 
-  final html.ResizeObserver _observer;
+  final web.ResizeObserver _observer;
 
   @override
-  void observe(html.Element element) {
+  void observe(web.Element element) {
     _observer.observe(element);
   }
 
@@ -45,11 +48,11 @@ class HtmlElementAttachGate {
     }
   }
 
-  final html.HtmlElement element;
+  final web.HTMLElement element;
 
-  final _attachedElementCompleter = Completer<html.HtmlElement?>();
+  final _attachedElementCompleter = Completer<web.HTMLElement?>();
 
-  html.HtmlElement? get attachedElementOrNull =>
+  web.HTMLElement? get attachedElementOrNull =>
       _attachedElementCompleter.isCompleted ? element : null;
 
   HtmlElementAttachObserver? _observer;
@@ -57,7 +60,7 @@ class HtmlElementAttachGate {
 
   bool get isDisposed => _isDisposed;
 
-  Future<html.HtmlElement?> get attachedElement =>
+  Future<web.HTMLElement?> get attachedElement =>
       _attachedElementCompleter.future;
 
   void dispose() {

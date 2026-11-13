@@ -1,4 +1,3 @@
-import 'dart:html' as html;
 import 'dart:ui_web' as ui;
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
@@ -6,6 +5,7 @@ import 'package:agora_rtc_engine/src/impl/platform/global_video_view_controller_
 import 'package:agora_rtc_engine/src/impl/platform/web/html_element_attach_gate.dart';
 import 'package:flutter/foundation.dart';
 import 'package:iris_method_channel/iris_method_channel.dart';
+import 'package:web/web.dart' as web;
 
 // ignore_for_file: public_member_api_docs
 
@@ -15,9 +15,15 @@ String _getViewType(int id) {
   return 'agora_rtc_engine/${_platformRendererViewType}_$id';
 }
 
+void _removeAllChildren(web.HTMLElement element) {
+  while (element.firstChild != null) {
+    element.removeChild(element.firstChild!);
+  }
+}
+
 class _View {
   _View(int platformViewId)
-      : _element = html.DivElement()
+      : _element = (web.document.createElement('div') as web.HTMLDivElement)
           ..id = _getViewType(platformViewId)
           ..style.width = '100%'
           ..style.height = '100%' {
@@ -26,8 +32,8 @@ class _View {
     _attachGate = HtmlElementAttachGate(_element);
   }
 
-  final html.HtmlElement _element;
-  html.HtmlElement get element => _element;
+  final web.HTMLElement _element;
+  web.HTMLElement get element => _element;
 
   late final HtmlElementAttachGate _attachGate;
   bool _isDisposed = false;
@@ -41,7 +47,7 @@ class _View {
 
     _isDisposed = true;
     _attachGate.dispose();
-    _element.children.clear();
+    _removeAllChildren(_element);
   }
 
   Future<String?> waitAndGetId() async {
@@ -83,7 +89,7 @@ class GlobalVideoViewControllerWeb extends GlobalVideoViewControllerPlatfrom {
     if (videoCanvas.setupMode == VideoViewSetupMode.videoViewSetupRemove) {
       final view = _viewMap[viewId];
       if (view?.element.isConnected == true) {
-        view!.element.children.clear();
+        _removeAllChildren(view!.element);
       } else {
         _viewMap.remove(viewId)?.dispose();
       }
@@ -107,7 +113,7 @@ class GlobalVideoViewControllerWeb extends GlobalVideoViewControllerPlatfrom {
   }
 
   @visibleForTesting
-  html.HtmlElement debugCreatePlatformView(int viewId) {
+  web.HTMLElement debugCreatePlatformView(int viewId) {
     final view = _View(viewId);
     _viewMap[viewId] = view;
     return view.element;

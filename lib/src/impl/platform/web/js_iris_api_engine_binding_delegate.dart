@@ -1,5 +1,5 @@
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:js_util';
+import 'dart:js_interop';
 
 import 'package:agora_rtc_engine/src/binding_forward_export.dart';
 import 'package:agora_rtc_engine/src/impl/platform/web/iris_web_rtc_bindings_js.dart';
@@ -23,7 +23,7 @@ class IrisApiEngineBindingsDelegateJS
     assert(() {
       if (args.isNotEmpty) {
         final arg = args[0].provide(irisApiEngineHandle)();
-        options = InitIrisRtcOptions(irisRtcEngine: arg);
+        options = InitIrisRtcOptions(irisRtcEngine: arg as JSAny?);
       }
 
       return true;
@@ -54,21 +54,18 @@ class IrisApiEngineBindingsDelegateJS
   ) async {
     final nApiEnginePtr = apiEnginePtr() as js.IrisApiEngine;
 
-    List<Object> buffer = [];
-    List<int> lenOfBuffer = [];
-    int bufferCount = 0;
+    final jsBuffer = <JSObject>[];
+    final jsLength = <JSNumber>[];
     if (methodCall.buffers != null) {
-      bufferCount += methodCall.buffers!.length;
       for (final rb in methodCall.buffers!) {
-        buffer.add(rb);
-        lenOfBuffer.add(rb.length);
+        jsBuffer.add(rb.toJS);
+        jsLength.add(rb.length.toJS);
       }
     }
     if (methodCall.rawBufferParams != null) {
-      bufferCount += methodCall.rawBufferParams!.length;
       for (final rb in methodCall.rawBufferParams!) {
-        buffer.add(rb.intPtr());
-        lenOfBuffer.add(rb.length);
+        jsBuffer.add(_rawBufferValueToJS(rb.intPtr()));
+        jsLength.add(rb.length.toJS);
       }
     }
 
@@ -77,9 +74,9 @@ class IrisApiEngineBindingsDelegateJS
       data: methodCall.params,
       data_size: methodCall.params.length,
       result: '',
-      buffer: buffer,
-      length: lenOfBuffer,
-      buffer_count: bufferCount,
+      buffer: jsBuffer.toJS,
+      length: jsLength.toJS,
+      buffer_count: jsBuffer.length,
     );
 
     if (_skipCalls.contains(methodCall.funcName)) {
@@ -87,10 +84,13 @@ class IrisApiEngineBindingsDelegateJS
       return CallApiResult(irisReturnCode: 0, data: {'result': 0});
     }
 
-    final promiseFuture =
-        promiseToFuture(js.callIrisApi(nApiEnginePtr, nParam));
+    // The JS side returns a `Promise`, convert it to a Dart `Future` so this
+    // also works when compiled to Wasm, where `dart:js_util.promiseToFuture`
+    // is not available and awaiting a native JS Promise does not work.
+    final jsPromise =
+        (js.callIrisApi(nApiEnginePtr, nParam) as JSPromise).toDart;
 
-    final js.CallIrisApiResult irisApiResult = await promiseFuture;
+    final js.CallIrisApiResult irisApiResult = await jsPromise;
 
     return irisApiResult.toCallApiResult();
   }
@@ -112,6 +112,18 @@ class IrisApiEngineBindingsDelegateJS
   void destroyNativeApiEngine(IrisApiEngineHandle apiEnginePtr) {
     js.disposeIrisApiEngine(apiEnginePtr() as js.IrisApiEngine);
   }
+}
+
+/// Converts the value of a raw buffer param to a JS value.
+///
+/// On web the value is either the event handler function (see
+/// `IrisMethodChannelInternalWeb`) or the platform view handle, which is
+/// a `String`(the div id) on web.
+JSObject _rawBufferValueToJS(Object value) {
+  if (value is String) return value.toJS;
+  if (value is js.IrisCEventHandler) return value.toJS;
+  throw ArgumentError.value(
+      value.runtimeType, 'value', 'Unsupported raw buffer param type');
 }
 
 class IrisApiEngineNativeBindingDelegateProviderWeb
