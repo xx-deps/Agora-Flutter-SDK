@@ -5,6 +5,7 @@ description: >-
 version: 6.2.6-sp.426169.b.1.wasm1
 homepage: https://www.agora.io
 repository: https://github.com/AgoraIO-Extensions/Agora-Flutter-SDK/tree/main
+publish_to: none
 environment:
   sdk: '>=3.13.0 <4.0.0'
   flutter: '>=3.47.0'
@@ -17,7 +18,11 @@ dependencies:
   ffi: '>=1.1.2'
   async: ^2.8.2
   meta: ^1.7.0
-  iris_method_channel: '>=2.2.0'
+  iris_method_channel: 
+    git: 
+      url: https://github.com/xx-deps/iris_method_channel_flutter
+      ref: 2.2.4-wasm
+  web: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

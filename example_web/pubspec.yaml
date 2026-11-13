@@ -52,9 +52,6 @@ dependencies:
   #     path: frameworks/flutter/video_raw_data
   #     ref: 51dde78706a015743a993368f25a06df7960378e
 
-dependency_overrides: 
-  iris_method_channel:
-    path: C:\Users\al_ta\github\iris_method_channel_flutter
 
 dev_dependencies:
   flutter_test:
